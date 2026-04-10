@@ -622,7 +622,13 @@
   <div id="login" class="view active">
     <div class="card">
       <div class="card-title">본인의 조를 선택하세요</div>
-      <div class="group-selector" id="groupSelector"></div>
+      <div class="group-selector" id="groupSelector">
+        <button class="group-btn" data-group="A" onclick="selectGroup('A')">A조</button>
+        <button class="group-btn" data-group="B" onclick="selectGroup('B')">B조</button>
+        <button class="group-btn" data-group="C" onclick="selectGroup('C')">C조</button>
+        <button class="group-btn" data-group="D" onclick="selectGroup('D')">D조</button>
+        <button class="group-btn" data-group="E" onclick="selectGroup('E')">E조</button>
+      </div>
     </div>
     <div class="card" id="memberCard" style="display:none;">
       <div class="card-title">본인 번호를 선택하세요</div>
@@ -687,25 +693,20 @@
     participants = await pRes.json();
     const submittedIds = await sRes.json();
     submittedIds.forEach(id => submittedParticipants.add(id));
-
-    renderGroupSelector();
-    setupTabs();
   }
 
-  // ===== 탭 =====
-  function setupTabs() {
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        const view = tab.dataset.view;
-        if (view === 'scoring' && !currentParticipant) {
-          showToast('먼저 참가자를 선택해주세요.');
-          return;
-        }
-        switchView(view);
-        if (view === 'results') loadResults();
-      });
+  // ===== 탭 (즉시 설정) =====
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const view = tab.dataset.view;
+      if (view === 'scoring' && !currentParticipant) {
+        showToast('먼저 참가자를 선택해주세요.');
+        return;
+      }
+      switchView(view);
+      if (view === 'results') loadResults();
     });
-  }
+  });
 
   function switchView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -715,13 +716,6 @@
   }
 
   // ===== 조 선택 =====
-  function renderGroupSelector() {
-    const container = document.getElementById('groupSelector');
-    container.innerHTML = GROUPS.map(g =>
-      `<button class="group-btn" data-group="${g}" onclick="selectGroup('${g}')">${g}조</button>`
-    ).join('');
-  }
-
   function selectGroup(group) {
     document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('selected'));
     document.querySelector(`[data-group="${group}"]`).classList.add('selected');
