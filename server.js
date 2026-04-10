@@ -57,6 +57,12 @@ app.post('/api/scores', async (req, res) => {
   try {
     const { participantId, scores: submittedScores } = req.body;
 
+    // 관리자(꽃미남 신상무)는 채점하지 않음
+    const isAdmin = participantId === 'admin';
+    if (isAdmin) {
+      return res.status(400).json({ error: '관리자는 채점할 수 없습니다.' });
+    }
+
     // 참가자 확인
     const participant = participants.find(p => p.id === participantId);
     if (!participant) {

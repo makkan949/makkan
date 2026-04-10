@@ -602,6 +602,32 @@
 
     .no-results .icon { font-size: 3rem; margin-bottom: 12px; }
 
+    /* 관리자 버튼 */
+    .admin-section {
+      margin-top: 20px;
+      text-align: center;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .admin-btn {
+      padding: 14px 24px;
+      background: linear-gradient(135deg, #ec4899, #a855f7);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .admin-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(168,85,247,0.4);
+    }
+
     /* ===== 공동 1등 추첨 화면 ===== */
     .tiebreak-stage {
       text-align: center;
@@ -860,6 +886,9 @@
         <button class="member-btn" data-num="5" onclick="selectMember(5)">5번</button>
       </div>
     </div>
+    <div class="admin-section">
+      <button class="admin-btn" onclick="loginAsAdmin()">&#128142; 꽃미남 신상무</button>
+    </div>
   </div>
 
   <!-- 2. 채점 화면 -->
@@ -885,7 +914,7 @@
       </div>
     </div>
     <div id="rankingList"></div>
-    <button class="reset-btn" onclick="resetAll()">전체 초기화</button>
+    <button class="reset-btn" id="resetBtn" onclick="resetAll()" style="display:none;">전체 초기화</button>
   </div>
 </div>
 
@@ -905,6 +934,7 @@
   let currentScores = {};
   let submittedParticipants = new Set();
   let lastResults = null;
+  let isAdmin = false;
 
   const GROUPS = ['A', 'B', 'C', 'D', 'E'];
   const TOPIC_NAMES = { 1: '외부시장 VS 이익률', 2: 'AI 활용 아이디어' };
@@ -927,6 +957,14 @@
       const view = tab.dataset.view;
       if (view === 'scoring' && !currentParticipant) {
         showToast('먼저 참가자를 선택해주세요.');
+        return;
+      }
+      if (view === 'scoring' && isAdmin) {
+        showToast('관리자는 채점할 수 없습니다.');
+        return;
+      }
+      if (view === 'results' && !isAdmin) {
+        showToast('결과는 관리자만 볼 수 있습니다.');
         return;
       }
       switchView(view);
@@ -956,6 +994,17 @@
       const id = group + num;
       btn.classList.toggle('submitted', submittedParticipants.has(id));
     });
+  }
+
+  // ===== 관리자(꽃미남 신상무) 로그인 =====
+  function loginAsAdmin() {
+    isAdmin = true;
+    currentParticipant = { id: 'admin', name: '꽃미남 신상무', group: 'ADMIN' };
+    document.getElementById('scorerName').textContent = '꽃미남 신상무 (관리자)';
+
+    // 결과 탭으로 바로 이동
+    switchView('results');
+    loadResults();
   }
 
   // ===== 멤버 선택 =====
@@ -1084,8 +1133,13 @@
       if (res.ok) {
         submittedParticipants.add(currentParticipant.id);
         showToast('점수가 성공적으로 제출되었습니다!');
-        switchView('results');
-        loadResults();
+        if (isAdmin) {
+          switchView('results');
+          loadResults();
+        } else {
+          // 참가자는 제출 후 로그인 화면으로
+          switchView('login');
+        }
       } else {
         showToast(data.error || '제출 실패');
         btn.disabled = false;
@@ -1108,9 +1162,10 @@
       document.getElementById('submissionCount').textContent =
         `${data.submission.submitted}/${data.submission.total}`;
 
-      // 1등 발표 버튼 표시 (제출이 1건 이상이면)
+      // 관리자 전용 버튼 표시
       const winnerBtn = document.getElementById('winnerRevealBtn');
-      winnerBtn.style.display = data.submission.submitted > 0 ? 'block' : 'none';
+      winnerBtn.style.display = (isAdmin && data.submission.submitted > 0) ? 'block' : 'none';
+      document.getElementById('resetBtn').style.display = isAdmin ? 'block' : 'none';
 
       const list = document.getElementById('rankingList');
 
