@@ -716,9 +716,12 @@
   }
 
   // ===== 조 선택 =====
-  function selectGroup(group) {
+  async function selectGroup(group) {
     document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('selected'));
     document.querySelector(`[data-group="${group}"]`).classList.add('selected');
+
+    // init()이 아직 안 끝났으면 기다림
+    await initPromise;
 
     const members = participants.filter(p => p.group === group);
     const memberCard = document.getElementById('memberCard');
@@ -1084,7 +1087,7 @@
   }
 
   // 앱 시작
-  init();
+  const initPromise = init();
 </script>
 
 </body>
