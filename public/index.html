@@ -601,6 +601,226 @@
     }
 
     .no-results .icon { font-size: 3rem; margin-bottom: 12px; }
+
+    /* ===== 공동 1등 추첨 화면 ===== */
+    .tiebreak-stage {
+      text-align: center;
+      z-index: 1005;
+    }
+
+    .tiebreak-title {
+      font-size: 1.3rem;
+      color: #fbbf24;
+      font-weight: 600;
+      letter-spacing: 4px;
+      margin-bottom: 24px;
+    }
+
+    .tiebreak-score-info {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 30px;
+    }
+
+    .tiebreak-groups {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .tiebreak-group-card {
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 16px;
+      padding: 20px 24px;
+      min-width: 120px;
+      transition: all 0.3s;
+    }
+
+    .tiebreak-group-card.highlight {
+      border-color: #fbbf24;
+      background: rgba(251,191,36,0.15);
+      box-shadow: 0 0 30px rgba(251,191,36,0.3);
+    }
+
+    .tiebreak-group-card .group-letter {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: white;
+      margin-bottom: 8px;
+    }
+
+    .tiebreak-group-card .group-sub {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .tiebreak-number-section {
+      margin-bottom: 24px;
+    }
+
+    .tiebreak-number-label {
+      color: rgba(255,255,255,0.7);
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
+
+    .tiebreak-numbers {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tiebreak-num-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.06);
+      color: white;
+      font-size: 1.3rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tiebreak-num-btn:hover {
+      border-color: #fbbf24;
+      background: rgba(251,191,36,0.15);
+      transform: scale(1.1);
+    }
+
+    .tiebreak-num-btn.selected {
+      background: #fbbf24;
+      color: #1e293b;
+      border-color: #fbbf24;
+      box-shadow: 0 0 16px rgba(251,191,36,0.5);
+    }
+
+    .tiebreak-num-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .tiebreak-selections {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .tiebreak-sel-item {
+      text-align: center;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.9rem;
+    }
+
+    .tiebreak-sel-item .sel-group {
+      font-weight: 700;
+      color: white;
+      font-size: 1rem;
+    }
+
+    .tiebreak-sel-item .sel-num {
+      display: inline-block;
+      width: 36px;
+      height: 36px;
+      line-height: 36px;
+      border-radius: 50%;
+      background: rgba(251,191,36,0.2);
+      border: 1px solid #fbbf24;
+      color: #fbbf24;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    .tiebreak-go-btn {
+      padding: 14px 48px;
+      background: linear-gradient(135deg, #fbbf24, #d97706);
+      color: #1e293b;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tiebreak-go-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(251,191,36,0.5);
+    }
+
+    .tiebreak-go-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* 추첨 룰렛 애니메이션 */
+    .roulette-stage {
+      text-align: center;
+      z-index: 1005;
+    }
+
+    .roulette-label {
+      font-size: 1.2rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 20px;
+    }
+
+    .roulette-display {
+      font-size: 6rem;
+      font-weight: 900;
+      color: white;
+      height: 120px;
+      line-height: 120px;
+      margin-bottom: 20px;
+      text-shadow: 0 0 40px rgba(251,191,36,0.6);
+    }
+
+    .roulette-numbers-row {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .roulette-num-cell {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      border: 2px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.4);
+      transition: all 0.3s;
+    }
+
+    .roulette-num-cell.reveal {
+      border-color: #fbbf24;
+      color: #fbbf24;
+      background: rgba(251,191,36,0.15);
+      box-shadow: 0 0 20px rgba(251,191,36,0.3);
+    }
+
+    .roulette-num-cell.winner-cell {
+      border-color: #fbbf24;
+      color: #1e293b;
+      background: #fbbf24;
+      box-shadow: 0 0 30px rgba(251,191,36,0.6);
+      transform: scale(1.15);
+    }
   </style>
 </head>
 <body>
@@ -927,11 +1147,173 @@
   }
 
   // ===== 1등 발표 화면 =====
+  let tiebreakPicks = {}; // { groupLetter: number }
+
   function showWinner() {
     if (!lastResults || lastResults.rankings.length === 0) return;
 
-    const winner = lastResults.rankings[0];
+    const topScore = lastResults.rankings[0].totalAverage;
+    const tied = lastResults.rankings.filter(r => r.totalAverage === topScore);
+
     const overlay = document.getElementById('winnerOverlay');
+    const content = document.getElementById('winnerContent');
+
+    if (tied.length === 1) {
+      // 단독 1등 -> 바로 축하 화면
+      showWinnerCelebration(tied[0]);
+    } else {
+      // 공동 1등 -> 추첨 화면
+      tiebreakPicks = {};
+      showTiebreakScreen(tied);
+    }
+
+    overlay.classList.add('active');
+  }
+
+  // 공동 1등 추첨 화면
+  function showTiebreakScreen(tied) {
+    const content = document.getElementById('winnerContent');
+
+    content.innerHTML = `
+      <div class="tiebreak-stage">
+        <div class="tiebreak-title">&#9878; 공동 1등 추첨 &#9878;</div>
+        <div class="tiebreak-score-info">
+          동점: ${tied[0].totalAverage}점 | ${tied.length}개 조가 공동 1등입니다
+        </div>
+        <div class="tiebreak-groups">
+          ${tied.map(r => `
+            <div class="tiebreak-group-card" id="tb-card-${r.group}">
+              <div class="group-letter">${r.group}</div>
+              <div class="group-sub">${r.group}조</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="tiebreak-number-section">
+          <div class="tiebreak-number-label">각 조에서 숫자 하나를 선택하세요 (1~10)</div>
+          ${tied.map(r => `
+            <div style="margin-bottom: 16px;">
+              <div style="color:rgba(255,255,255,0.8);font-weight:600;margin-bottom:8px;">${r.group}조 선택</div>
+              <div class="tiebreak-numbers" id="tb-nums-${r.group}">
+                ${[1,2,3,4,5,6,7,8,9,10].map(n => `
+                  <button class="tiebreak-num-btn" data-group="${r.group}" data-num="${n}"
+                          onclick="pickTiebreakNum('${r.group}', ${n}, ${tied.length})">${n}</button>
+                `).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="tiebreak-selections" id="tiebreakSelections"></div>
+        <button class="tiebreak-go-btn" id="tiebreakGoBtn" disabled onclick="runTiebreakRoulette()">
+          추첨 시작
+        </button>
+      </div>
+    `;
+  }
+
+  function pickTiebreakNum(group, num, totalGroups) {
+    tiebreakPicks[group] = num;
+
+    // 해당 조의 버튼 상태 업데이트
+    document.querySelectorAll(`#tb-nums-${group} .tiebreak-num-btn`).forEach(btn => {
+      btn.classList.toggle('selected', parseInt(btn.dataset.num) === num);
+    });
+
+    // 카드 하이라이트
+    document.getElementById(`tb-card-${group}`).classList.add('highlight');
+
+    // 선택 현황 표시
+    const selDiv = document.getElementById('tiebreakSelections');
+    selDiv.innerHTML = Object.entries(tiebreakPicks).map(([g, n]) => `
+      <div class="tiebreak-sel-item">
+        <div class="sel-group">${g}조</div>
+        <div class="sel-num">${n}</div>
+      </div>
+    `).join('');
+
+    // 모든 조가 선택하면 버튼 활성화
+    const goBtn = document.getElementById('tiebreakGoBtn');
+    goBtn.disabled = Object.keys(tiebreakPicks).length < totalGroups;
+  }
+
+  // 추첨 룰렛 실행
+  function runTiebreakRoulette() {
+    const groups = Object.keys(tiebreakPicks);
+    const content = document.getElementById('winnerContent');
+
+    // 당첨 번호를 무작위로 결정
+    const winningNumber = Math.floor(Math.random() * 10) + 1;
+
+    // 각 조의 숫자와 당첨 번호의 차이(순환 거리) 계산 -> 가장 가까운 조가 당첨
+    let minDist = Infinity;
+    let winnerGroup = null;
+    groups.forEach(g => {
+      const pick = tiebreakPicks[g];
+      const dist = Math.min(Math.abs(pick - winningNumber), 10 - Math.abs(pick - winningNumber));
+      if (dist < minDist) {
+        minDist = dist;
+        winnerGroup = g;
+      }
+    });
+
+    // 룰렛 화면 표시
+    content.innerHTML = `
+      <div class="roulette-stage">
+        <div class="roulette-label">추첨 중...</div>
+        <div class="roulette-display" id="rouletteDisplay">?</div>
+        <div class="roulette-numbers-row">
+          ${groups.map(g => `
+            <div style="text-align:center;">
+              <div style="color:rgba(255,255,255,0.5);font-size:0.8rem;margin-bottom:6px;">${g}조 선택</div>
+              <div class="roulette-num-cell" id="roul-${g}">${tiebreakPicks[g]}</div>
+            </div>
+          `).join('')}
+          <div style="text-align:center;">
+            <div style="color:#fbbf24;font-size:0.8rem;margin-bottom:6px;">당첨 번호</div>
+            <div class="roulette-num-cell" id="roul-winning">?</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // 룰렛 애니메이션: 숫자 빠르게 돌리기
+    const display = document.getElementById('rouletteDisplay');
+    let tick = 0;
+    const totalTicks = 30;
+    let interval;
+
+    interval = setInterval(() => {
+      tick++;
+      const speed = 50 + tick * 15; // 점점 느려짐
+      display.textContent = Math.floor(Math.random() * 10) + 1;
+
+      if (tick >= totalTicks) {
+        clearInterval(interval);
+
+        // 최종 당첨 번호 표시
+        display.textContent = winningNumber;
+        display.style.color = '#fbbf24';
+
+        const winCell = document.getElementById('roul-winning');
+        winCell.textContent = winningNumber;
+        winCell.classList.add('reveal');
+
+        // 1초 후 가장 가까운 조 하이라이트
+        setTimeout(() => {
+          const cell = document.getElementById(`roul-${winnerGroup}`);
+          cell.classList.add('winner-cell');
+
+          // 2초 후 축하 화면
+          setTimeout(() => {
+            const winner = lastResults.rankings.find(r => r.group === winnerGroup);
+            showWinnerCelebration(winner);
+          }, 2000);
+        }, 1000);
+      }
+    }, 80);
+  }
+
+  // 최종 축하 화면
+  function showWinnerCelebration(winner) {
     const content = document.getElementById('winnerContent');
 
     content.innerHTML = `
@@ -955,10 +1337,10 @@
       </div>
       <div class="winner-congrats">&#127881; 축하합니다! &#127881;</div>
     `;
+    content.style.animation = 'none';
+    content.offsetHeight;
+    content.style.animation = 'winner-entrance 1s ease-out';
 
-    overlay.classList.add('active');
-
-    // 축하 효과 시작
     startConfetti();
     launchFireworks();
   }
