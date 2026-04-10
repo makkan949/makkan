@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>발표 점수 집계</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #818cf8;
+      --primary-dark: #3730a3;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --text-light: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --gold: #f59e0b;
+      --silver: #94a3b8;
+      --bronze: #cd7f32;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .header h1 { font-size: 1.5rem; font-weight: 700; }
+    .header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* 탭 네비게이션 */
+    .tabs {
+      display: flex;
+      background: var(--card);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-light);
+      transition: all 0.2s;
+      border: none;
+      background: none;
+    }
+
+    .tab.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 2px 4px rgba(79,70,229,0.3);
+    }
+
+    .tab:hover:not(.active) { color: var(--primary); }
+
+    /* 화면 전환 */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* 카드 */
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    /* 로그인 화면 */
+    .group-selector {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .group-btn {
+      padding: 12px 8px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      color: var(--text);
+    }
+
+    .group-btn:hover, .group-btn.selected {
+      border-color: var(--primary);
+      background: #eef2ff;
+      color: var(--primary);
+    }
+
+    .member-list {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+
+    .member-btn {
+      padding: 14px 8px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all 0.2s;
+      color: var(--text);
+    }
+
+    .member-btn:hover {
+      border-color: var(--primary);
+      background: #eef2ff;
+      color: var(--primary);
+    }
+
+    .member-btn.submitted {
+      border-color: var(--success);
+      background: #ecfdf5;
+      color: var(--success);
+      position: relative;
+    }
+
+    .member-btn.submitted::after {
+      content: '\2713';
+      position: absolute;
+      top: 2px;
+      right: 6px;
+      font-size: 0.7rem;
+    }
+
+    /* 채점 화면 */
+    .scorer-info {
+      background: #eef2ff;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 500;
+    }
+
+    .scorer-info .change-btn {
+      background: none;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: 4px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .score-group {
+      margin-bottom: 20px;
+    }
+
+    .score-group-header {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .score-group-header .badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: white;
+    }
+
+    .group-A .badge { background: #ef4444; }
+    .group-B .badge { background: #f59e0b; }
+    .group-C .badge { background: #10b981; }
+    .group-D .badge { background: #3b82f6; }
+    .group-E .badge { background: #8b5cf6; }
+
+    .score-topic {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+
+    .score-topic:last-child { border-bottom: none; }
+
+    .topic-label {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      min-width: 60px;
+    }
+
+    .star-rating {
+      display: flex;
+      gap: 4px;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .star {
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 1.8rem;
+      color: #d1d5db;
+      transition: all 0.15s;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .star.filled { color: var(--gold); }
+    .star:hover { transform: scale(1.2); }
+
+    .score-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      min-width: 30px;
+      text-align: center;
+      color: var(--primary);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 8px;
+    }
+
+    .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79,70,229,0.4); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* 결과 화면 */
+    .result-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: #f1f5f9;
+      border-radius: 10px;
+    }
+
+    .submission-count {
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+
+    .submission-count strong {
+      color: var(--primary);
+      font-size: 1.1rem;
+    }
+
+    .refresh-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .ranking-item {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      background: var(--card);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      transition: all 0.2s;
+    }
+
+    .ranking-item:hover { transform: translateX(4px); }
+
+    .rank-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      margin-right: 14px;
+      flex-shrink: 0;
+    }
+
+    .rank-1 .rank-badge { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; box-shadow: 0 2px 8px rgba(245,158,11,0.4); }
+    .rank-2 .rank-badge { background: linear-gradient(135deg, #cbd5e1, #94a3b8); color: white; }
+    .rank-3 .rank-badge { background: linear-gradient(135deg, #d97706, #b45309); color: white; }
+    .rank-other .rank-badge { background: #f1f5f9; color: var(--text-light); }
+
+    .rank-1 { border-left: 4px solid var(--gold); }
+    .rank-2 { border-left: 4px solid var(--silver); }
+    .rank-3 { border-left: 4px solid var(--bronze); }
+
+    .rank-info { flex: 1; }
+    .rank-group { font-size: 1.1rem; font-weight: 700; }
+    .rank-detail { font-size: 0.8rem; color: var(--text-light); margin-top: 2px; }
+
+    .rank-score {
+      text-align: right;
+    }
+
+    .rank-score .total {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .rank-score .label {
+      font-size: 0.7rem;
+      color: var(--text-light);
+    }
+
+    /* 토스트 메시지 */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1e293b;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: transform 0.3s;
+      z-index: 100;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* 리셋 버튼 */
+    .reset-btn {
+      background: none;
+      border: 1px solid #ef4444;
+      color: #ef4444;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      margin-top: 20px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .reset-btn:hover { background: #fef2f2; }
+
+    /* 반응형 */
+    @media (max-width: 400px) {
+      .star { width: 32px; height: 32px; font-size: 1.5rem; }
+      .group-selector { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+      .member-list { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+    }
+
+    /* 결과 없음 */
+    .no-results {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-light);
+    }
+
+    .no-results .icon { font-size: 3rem; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>발표 점수 집계</h1>
+  <p>5개 조 &times; 2개 주제 | 25명 참가자 채점</p>
+</div>
+
+<div class="container">
+  <!-- 탭 -->
+  <div class="tabs">
+    <button class="tab active" data-view="login">참가자 선택</button>
+    <button class="tab" data-view="scoring">채점하기</button>
+    <button class="tab" data-view="results">결과 보기</button>
+  </div>
+
+  <!-- 1. 참가자 선택 화면 -->
+  <div id="login" class="view active">
+    <div class="card">
+      <div class="card-title">조를 선택하세요</div>
+      <div class="group-selector" id="groupSelector"></div>
+    </div>
+    <div class="card" id="memberCard" style="display:none;">
+      <div class="card-title">참가자를 선택하세요</div>
+      <div class="member-list" id="memberList"></div>
+    </div>
+  </div>
+
+  <!-- 2. 채점 화면 -->
+  <div id="scoring" class="view">
+    <div class="scorer-info">
+      <span id="scorerName">선택된 참가자 없음</span>
+      <button class="change-btn" onclick="switchView('login')">변경</button>
+    </div>
+    <div id="scoringForm"></div>
+    <button class="submit-btn" id="submitBtn" onclick="submitScores()">점수 제출하기</button>
+  </div>
+
+  <!-- 3. 결과 화면 -->
+  <div id="results" class="view">
+    <div class="result-summary">
+      <div class="submission-count">
+        제출 현황: <strong id="submissionCount">0/25</strong>
+      </div>
+      <button class="refresh-btn" onclick="loadResults()">새로고침</button>
+    </div>
+    <div id="rankingList"></div>
+    <button class="reset-btn" onclick="resetAll()">전체 초기화</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ===== 상태 =====
+  let participants = [];
+  let currentParticipant = null;
+  let currentScores = {};
+  let submittedParticipants = new Set();
+
+  const GROUPS = ['A', 'B', 'C', 'D', 'E'];
+  const GROUP_COLORS = { A: '#ef4444', B: '#f59e0b', C: '#10b981', D: '#3b82f6', E: '#8b5cf6' };
+
+  // ===== 초기화 =====
+  async function init() {
+    const res = await fetch('/api/participants');
+    participants = await res.json();
+
+    // 제출 현황 확인
+    for (const p of participants) {
+      const check = await fetch(`/api/scores/${p.id}`);
+      const data = await check.json();
+      if (data.submitted) submittedParticipants.add(p.id);
+    }
+
+    renderGroupSelector();
+    setupTabs();
+  }
+
+  // ===== 탭 =====
+  function setupTabs() {
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const view = tab.dataset.view;
+        if (view === 'scoring' && !currentParticipant) {
+          showToast('먼저 참가자를 선택해주세요.');
+          return;
+        }
+        switchView(view);
+        if (view === 'results') loadResults();
+      });
+    });
+  }
+
+  function switchView(viewId) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(viewId).classList.add('active');
+    document.querySelector(`[data-view="${viewId}"]`).classList.add('active');
+  }
+
+  // ===== 조 선택 =====
+  function renderGroupSelector() {
+    const container = document.getElementById('groupSelector');
+    container.innerHTML = GROUPS.map(g =>
+      `<button class="group-btn" data-group="${g}" onclick="selectGroup('${g}')">${g}조</button>`
+    ).join('');
+  }
+
+  function selectGroup(group) {
+    document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelector(`[data-group="${group}"]`).classList.add('selected');
+
+    const members = participants.filter(p => p.group === group);
+    const memberCard = document.getElementById('memberCard');
+    const memberList = document.getElementById('memberList');
+
+    memberCard.style.display = 'block';
+    memberList.innerHTML = members.map(m =>
+      `<button class="member-btn ${submittedParticipants.has(m.id) ? 'submitted' : ''}"
+              onclick="selectParticipant('${m.id}')">${m.name.split(' ')[1]}</button>`
+    ).join('');
+  }
+
+  // ===== 참가자 선택 =====
+  async function selectParticipant(id) {
+    currentParticipant = participants.find(p => p.id === id);
+    document.getElementById('scorerName').textContent =
+      `${currentParticipant.name} (${currentParticipant.group}조)`;
+
+    // 이전 제출 점수 불러오기
+    const res = await fetch(`/api/scores/${id}`);
+    const data = await res.json();
+
+    if (data.submitted) {
+      currentScores = { ...data.submitted };
+    } else {
+      currentScores = {};
+      GROUPS.forEach(g => {
+        currentScores[`${g}_1`] = 0;
+        currentScores[`${g}_2`] = 0;
+      });
+    }
+
+    renderScoringForm();
+    switchView('scoring');
+  }
+
+  // ===== 채점 폼 =====
+  function renderScoringForm() {
+    const form = document.getElementById('scoringForm');
+
+    form.innerHTML = GROUPS.map(group => `
+      <div class="card score-group">
+        <div class="score-group-header group-${group}">
+          <span class="badge">${group}</span>
+          ${group}조 발표
+        </div>
+        <div class="score-topic">
+          <span class="topic-label">주제 1</span>
+          <div class="star-rating">
+            ${[1,2,3,4,5].map(s =>
+              `<button class="star ${currentScores[`${group}_1`] >= s ? 'filled' : ''}"
+                      onclick="setScore('${group}_1', ${s})"
+                      data-key="${group}_1" data-value="${s}">&#9733;</button>`
+            ).join('')}
+          </div>
+          <span class="score-value" id="val_${group}_1">${currentScores[`${group}_1`] || '-'}</span>
+        </div>
+        <div class="score-topic">
+          <span class="topic-label">주제 2</span>
+          <div class="star-rating">
+            ${[1,2,3,4,5].map(s =>
+              `<button class="star ${currentScores[`${group}_2`] >= s ? 'filled' : ''}"
+                      onclick="setScore('${group}_2', ${s})"
+                      data-key="${group}_2" data-value="${s}">&#9733;</button>`
+            ).join('')}
+          </div>
+          <span class="score-value" id="val_${group}_2">${currentScores[`${group}_2`] || '-'}</span>
+        </div>
+      </div>
+    `).join('');
+
+    updateSubmitButton();
+  }
+
+  function setScore(key, value) {
+    currentScores[key] = value;
+    // 별 업데이트
+    document.querySelectorAll(`[data-key="${key}"]`).forEach(star => {
+      star.classList.toggle('filled', parseInt(star.dataset.value) <= value);
+    });
+    document.getElementById(`val_${key}`).textContent = value;
+    updateSubmitButton();
+  }
+
+  function updateSubmitButton() {
+    const allScored = GROUPS.every(g =>
+      currentScores[`${g}_1`] > 0 && currentScores[`${g}_2`] > 0
+    );
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = !allScored;
+    btn.textContent = allScored ? '점수 제출하기' : '모든 발표에 점수를 입력해주세요';
+  }
+
+  // ===== 점수 제출 =====
+  async function submitScores() {
+    if (!currentParticipant) return;
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = '제출 중...';
+
+    try {
+      const res = await fetch('/api/scores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          participantId: currentParticipant.id,
+          scores: currentScores
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        submittedParticipants.add(currentParticipant.id);
+        showToast('점수가 성공적으로 제출되었습니다!');
+        switchView('results');
+        loadResults();
+      } else {
+        showToast(data.error || '제출 실패');
+        btn.disabled = false;
+        btn.textContent = '점수 제출하기';
+      }
+    } catch (e) {
+      showToast('서버 연결 오류');
+      btn.disabled = false;
+      btn.textContent = '점수 제출하기';
+    }
+  }
+
+  // ===== 결과 =====
+  async function loadResults() {
+    try {
+      const res = await fetch('/api/results');
+      const data = await res.json();
+
+      document.getElementById('submissionCount').textContent =
+        `${data.submission.submitted}/${data.submission.total}`;
+
+      const list = document.getElementById('rankingList');
+
+      if (data.submission.submitted === 0) {
+        list.innerHTML = `
+          <div class="no-results">
+            <div class="icon">&#128202;</div>
+            <p>아직 제출된 점수가 없습니다.</p>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = data.rankings.map(r => {
+        const rankClass = r.rank <= 3 ? `rank-${r.rank}` : 'rank-other';
+        return `
+          <div class="ranking-item ${rankClass}">
+            <div class="rank-badge">${r.rank}</div>
+            <div class="rank-info">
+              <div class="rank-group">${r.group}조</div>
+              <div class="rank-detail">
+                주제1: ${r.topic1.average}점 | 주제2: ${r.topic2.average}점
+                (${r.topic1.count}명 평가)
+              </div>
+            </div>
+            <div class="rank-score">
+              <div class="total">${r.totalAverage}</div>
+              <div class="label">평균 합계</div>
+            </div>
+          </div>`;
+      }).join('');
+    } catch (e) {
+      showToast('결과를 불러올 수 없습니다.');
+    }
+  }
+
+  // ===== 초기화 =====
+  async function resetAll() {
+    if (!confirm('모든 점수를 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) return;
+
+    await fetch('/api/reset', { method: 'POST' });
+    submittedParticipants.clear();
+    currentScores = {};
+    showToast('모든 점수가 초기화되었습니다.');
+    loadResults();
+  }
+
+  // ===== 토스트 =====
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  // 앱 시작
+  init();
+</script>
+
+</body>
+</html>

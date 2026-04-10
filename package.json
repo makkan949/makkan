@@ -1,0 +1,12 @@
+{
+  "name": "presentation-scoring-app",
+  "version": "1.0.0",
+  "description": "발표 점수 집계 앱 - 5개 조(A~E) × 2개 주제, 25명 참가자 채점",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
