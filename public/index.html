@@ -679,14 +679,14 @@
 
   // ===== 초기화 =====
   async function init() {
-    const res = await fetch('/api/participants');
-    participants = await res.json();
-
-    for (const p of participants) {
-      const check = await fetch(`/api/scores/${p.id}`);
-      const data = await check.json();
-      if (data.submitted) submittedParticipants.add(p.id);
-    }
+    // 참가자 목록과 제출현황을 동시에 가져오기
+    const [pRes, sRes] = await Promise.all([
+      fetch('/api/participants'),
+      fetch('/api/submitted')
+    ]);
+    participants = await pRes.json();
+    const submittedIds = await sRes.json();
+    submittedIds.forEach(id => submittedParticipants.add(id));
 
     renderGroupSelector();
     setupTabs();

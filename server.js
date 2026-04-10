@@ -142,6 +142,11 @@ app.get('/api/results', (req, res) => {
   });
 });
 
+// 제출 현황 일괄 조회
+app.get('/api/submitted', (req, res) => {
+  res.json(Object.keys(scores));
+});
+
 // 데이터 초기화 (관리자용)
 app.post('/api/reset', (req, res) => {
   Object.keys(scores).forEach(key => delete scores[key]);
