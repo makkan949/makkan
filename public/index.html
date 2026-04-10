@@ -632,7 +632,13 @@
     </div>
     <div class="card" id="memberCard" style="display:none;">
       <div class="card-title">본인 번호를 선택하세요</div>
-      <div class="member-list" id="memberList"></div>
+      <div class="member-list" id="memberList">
+        <button class="member-btn" data-num="1" onclick="selectMember(1)">1번</button>
+        <button class="member-btn" data-num="2" onclick="selectMember(2)">2번</button>
+        <button class="member-btn" data-num="3" onclick="selectMember(3)">3번</button>
+        <button class="member-btn" data-num="4" onclick="selectMember(4)">4번</button>
+        <button class="member-btn" data-num="5" onclick="selectMember(5)">5번</button>
+      </div>
     </div>
   </div>
 
@@ -716,27 +722,28 @@
   }
 
   // ===== 조 선택 =====
-  async function selectGroup(group) {
+  let selectedGroup = null;
+
+  function selectGroup(group) {
+    selectedGroup = group;
     document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('selected'));
     document.querySelector(`[data-group="${group}"]`).classList.add('selected');
+    document.getElementById('memberCard').style.display = 'block';
 
-    // init()이 아직 안 끝났으면 기다림
-    await initPromise;
-
-    const members = participants.filter(p => p.group === group);
-    const memberCard = document.getElementById('memberCard');
-    const memberList = document.getElementById('memberList');
-
-    memberCard.style.display = 'block';
-    memberList.innerHTML = members.map(m =>
-      `<button class="member-btn ${submittedParticipants.has(m.id) ? 'submitted' : ''}"
-              onclick="selectParticipant('${m.id}')">${m.name.split(' ')[1]}</button>`
-    ).join('');
+    // 제출 여부 표시 업데이트
+    document.querySelectorAll('#memberList .member-btn').forEach(btn => {
+      const num = btn.dataset.num;
+      const id = group + num;
+      btn.classList.toggle('submitted', submittedParticipants.has(id));
+    });
   }
 
-  // ===== 참가자 선택 =====
-  async function selectParticipant(id) {
-    currentParticipant = participants.find(p => p.id === id);
+  // ===== 멤버 선택 =====
+  async function selectMember(num) {
+    if (!selectedGroup) return;
+    const id = selectedGroup + num;
+
+    currentParticipant = { id, name: `${selectedGroup}조 ${num}번`, group: selectedGroup };
     document.getElementById('scorerName').textContent =
       `${currentParticipant.name} (${currentParticipant.group}조)`;
 
@@ -745,12 +752,21 @@
       `${currentParticipant.group}조(본인 소속)는 채점 대상에서 제외됩니다.`;
 
     // 이전 제출 점수 불러오기
-    const res = await fetch(`/api/scores/${id}`);
-    const data = await res.json();
-
-    if (data.submitted) {
-      currentScores = { ...data.submitted };
-    } else {
+    try {
+      const res = await fetch(`/api/scores/${id}`);
+      const data = await res.json();
+      if (data.submitted) {
+        currentScores = { ...data.submitted };
+      } else {
+        currentScores = {};
+        GROUPS.forEach(g => {
+          if (g !== currentParticipant.group) {
+            currentScores[`${g}_1`] = 0;
+            currentScores[`${g}_2`] = 0;
+          }
+        });
+      }
+    } catch (e) {
       currentScores = {};
       GROUPS.forEach(g => {
         if (g !== currentParticipant.group) {
