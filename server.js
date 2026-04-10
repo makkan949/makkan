@@ -11,6 +11,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const GROUPS = ['A', 'B', 'C', 'D', 'E'];
 const MEMBERS_PER_GROUP = 5;
+const TOPIC_NAMES = {
+  1: '외부시장 VS 이익률',
+  2: 'AI 활용 아이디어'
+};
 
 // 참가자 목록 생성 (A조 1~5번, B조 1~5번, ...)
 const participants = [];
@@ -34,6 +38,15 @@ app.get('/api/participants', (req, res) => {
   res.json(participants);
 });
 
+// 설정 정보 조회
+app.get('/api/config', (req, res) => {
+  res.json({
+    groups: GROUPS,
+    topicNames: TOPIC_NAMES,
+    title: '부서장 리더십 교육 분임토의'
+  });
+});
+
 // 점수 제출
 app.post('/api/scores', (req, res) => {
   const { participantId, scores: submittedScores } = req.body;
@@ -42,6 +55,14 @@ app.post('/api/scores', (req, res) => {
   const participant = participants.find(p => p.id === participantId);
   if (!participant) {
     return res.status(400).json({ error: '유효하지 않은 참가자입니다.' });
+  }
+
+  // 본인 조 채점 방지
+  for (const key of Object.keys(submittedScores)) {
+    const group = key.split('_')[0];
+    if (group === participant.group) {
+      return res.status(400).json({ error: '본인이 속한 조는 채점할 수 없습니다.' });
+    }
   }
 
   // 점수 유효성 검사
@@ -116,6 +137,7 @@ app.get('/api/results', (req, res) => {
 
   res.json({
     rankings: ranked,
+    topicNames: TOPIC_NAMES,
     submission: { total: totalParticipants, submitted: submittedCount }
   });
 });

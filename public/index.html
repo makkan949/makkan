@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>발표 점수 집계</title>
+  <title>부서장 리더십 교육 분임토의</title>
   <style>
     :root {
       --primary: #4f46e5;
@@ -38,7 +38,7 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
-    .header h1 { font-size: 1.5rem; font-weight: 700; }
+    .header h1 { font-size: 1.4rem; font-weight: 700; }
     .header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
 
     .container {
@@ -59,11 +59,11 @@
 
     .tab {
       flex: 1;
-      padding: 10px;
+      padding: 10px 6px;
       text-align: center;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 0.82rem;
       font-weight: 500;
       color: var(--text-light);
       transition: all 0.2s;
@@ -186,9 +186,18 @@
       font-size: 0.8rem;
     }
 
-    .score-group {
-      margin-bottom: 20px;
+    .own-group-notice {
+      background: #fef3c7;
+      border: 1px solid #fbbf24;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      font-size: 0.85rem;
+      color: #92400e;
+      text-align: center;
     }
+
+    .score-group { margin-bottom: 20px; }
 
     .score-group-header {
       font-size: 1rem;
@@ -224,31 +233,32 @@
       align-items: center;
       padding: 10px 0;
       border-bottom: 1px solid var(--border);
-      gap: 12px;
+      gap: 8px;
     }
 
     .score-topic:last-child { border-bottom: none; }
 
     .topic-label {
-      font-size: 0.9rem;
+      font-size: 0.78rem;
       color: var(--text-light);
-      min-width: 60px;
+      min-width: 90px;
+      line-height: 1.2;
     }
 
     .star-rating {
       display: flex;
-      gap: 4px;
+      gap: 2px;
       flex: 1;
       justify-content: center;
     }
 
     .star {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       border: none;
       background: none;
       cursor: pointer;
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       color: #d1d5db;
       transition: all 0.15s;
       padding: 0;
@@ -261,7 +271,7 @@
     .score-value {
       font-size: 1.1rem;
       font-weight: 700;
-      min-width: 30px;
+      min-width: 24px;
       text-align: center;
       color: var(--primary);
     }
@@ -304,6 +314,11 @@
       font-size: 1.1rem;
     }
 
+    .result-actions {
+      display: flex;
+      gap: 8px;
+    }
+
     .refresh-btn {
       background: var(--primary);
       color: white;
@@ -313,6 +328,23 @@
       cursor: pointer;
       font-size: 0.85rem;
       font-weight: 500;
+    }
+
+    .winner-reveal-btn {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      animation: glow-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 5px rgba(245,158,11,0.3); }
+      50% { box-shadow: 0 0 20px rgba(245,158,11,0.6); }
     }
 
     .ranking-item {
@@ -354,9 +386,7 @@
     .rank-group { font-size: 1.1rem; font-weight: 700; }
     .rank-detail { font-size: 0.8rem; color: var(--text-light); margin-top: 2px; }
 
-    .rank-score {
-      text-align: right;
-    }
+    .rank-score { text-align: right; }
 
     .rank-score .total {
       font-size: 1.3rem;
@@ -367,6 +397,156 @@
     .rank-score .label {
       font-size: 0.7rem;
       color: var(--text-light);
+    }
+
+    /* ===== 1등 발표 화면 ===== */
+    .winner-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .winner-overlay.active { display: flex; }
+
+    .winner-close {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.6);
+      font-size: 2rem;
+      cursor: pointer;
+      z-index: 1010;
+    }
+
+    .winner-close:hover { color: white; }
+
+    .winner-content {
+      text-align: center;
+      z-index: 1005;
+      animation: winner-entrance 1s ease-out;
+    }
+
+    @keyframes winner-entrance {
+      0% { opacity: 0; transform: scale(0.3) translateY(50px); }
+      50% { transform: scale(1.05) translateY(-10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .winner-crown {
+      font-size: 5rem;
+      animation: crown-bounce 1.5s ease-in-out infinite;
+      margin-bottom: 10px;
+    }
+
+    @keyframes crown-bounce {
+      0%, 100% { transform: translateY(0) rotate(-5deg); }
+      50% { transform: translateY(-15px) rotate(5deg); }
+    }
+
+    .winner-label {
+      font-size: 1.2rem;
+      color: #fbbf24;
+      font-weight: 500;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      animation: shimmer 2s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+
+    .winner-group-name {
+      font-size: 5rem;
+      font-weight: 900;
+      color: white;
+      text-shadow: 0 0 40px rgba(251,191,36,0.6), 0 0 80px rgba(251,191,36,0.3);
+      margin-bottom: 10px;
+      animation: text-glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes text-glow {
+      0% { text-shadow: 0 0 40px rgba(251,191,36,0.4), 0 0 80px rgba(251,191,36,0.2); }
+      100% { text-shadow: 0 0 60px rgba(251,191,36,0.8), 0 0 120px rgba(251,191,36,0.4), 0 0 160px rgba(79,70,229,0.3); }
+    }
+
+    .winner-score-display {
+      font-size: 2rem;
+      color: #fbbf24;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+
+    .winner-details {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16px;
+      padding: 20px 32px;
+      display: inline-block;
+      backdrop-filter: blur(10px);
+    }
+
+    .winner-detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 40px;
+      padding: 8px 0;
+      color: rgba(255,255,255,0.85);
+      font-size: 1rem;
+    }
+
+    .winner-detail-row .detail-label { color: rgba(255,255,255,0.55); }
+    .winner-detail-row .detail-value { font-weight: 700; color: #fbbf24; }
+
+    .winner-congrats {
+      margin-top: 30px;
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.7);
+      animation: fade-in-up 1s ease-out 0.5s both;
+    }
+
+    @keyframes fade-in-up {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 컨페티 캔버스 */
+    #confettiCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1002;
+      pointer-events: none;
+    }
+
+    /* 불꽃 파티클 */
+    .firework {
+      position: fixed;
+      z-index: 1001;
+      pointer-events: none;
+    }
+
+    .spark {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      animation: spark-fly 1s ease-out forwards;
+    }
+
+    @keyframes spark-fly {
+      0% { opacity: 1; transform: translate(0, 0) scale(1); }
+      100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
     }
 
     /* 토스트 메시지 */
@@ -382,7 +562,7 @@
       font-size: 0.9rem;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       transition: transform 0.3s;
-      z-index: 100;
+      z-index: 2000;
     }
 
     .toast.show { transform: translateX(-50%) translateY(0); }
@@ -406,12 +586,14 @@
 
     /* 반응형 */
     @media (max-width: 400px) {
-      .star { width: 32px; height: 32px; font-size: 1.5rem; }
-      .group-selector { grid-template-columns: repeat(5, 1fr); gap: 4px; }
-      .member-list { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+      .star { width: 30px; height: 30px; font-size: 1.4rem; }
+      .topic-label { min-width: 70px; font-size: 0.72rem; }
+      .group-selector { gap: 4px; }
+      .member-list { gap: 4px; }
+      .winner-group-name { font-size: 3.5rem; }
+      .winner-details { padding: 16px 20px; }
     }
 
-    /* 결과 없음 */
     .no-results {
       text-align: center;
       padding: 40px 20px;
@@ -424,7 +606,7 @@
 <body>
 
 <div class="header">
-  <h1>발표 점수 집계</h1>
+  <h1>부서장 리더십 교육 분임토의</h1>
   <p>5개 조 &times; 2개 주제 | 25명 참가자 채점</p>
 </div>
 
@@ -439,11 +621,11 @@
   <!-- 1. 참가자 선택 화면 -->
   <div id="login" class="view active">
     <div class="card">
-      <div class="card-title">조를 선택하세요</div>
+      <div class="card-title">본인의 조를 선택하세요</div>
       <div class="group-selector" id="groupSelector"></div>
     </div>
     <div class="card" id="memberCard" style="display:none;">
-      <div class="card-title">참가자를 선택하세요</div>
+      <div class="card-title">본인 번호를 선택하세요</div>
       <div class="member-list" id="memberList"></div>
     </div>
   </div>
@@ -454,6 +636,7 @@
       <span id="scorerName">선택된 참가자 없음</span>
       <button class="change-btn" onclick="switchView('login')">변경</button>
     </div>
+    <div class="own-group-notice" id="ownGroupNotice"></div>
     <div id="scoringForm"></div>
     <button class="submit-btn" id="submitBtn" onclick="submitScores()">점수 제출하기</button>
   </div>
@@ -464,11 +647,21 @@
       <div class="submission-count">
         제출 현황: <strong id="submissionCount">0/25</strong>
       </div>
-      <button class="refresh-btn" onclick="loadResults()">새로고침</button>
+      <div class="result-actions">
+        <button class="refresh-btn" onclick="loadResults()">새로고침</button>
+        <button class="winner-reveal-btn" id="winnerRevealBtn" onclick="showWinner()" style="display:none;">1등 발표</button>
+      </div>
     </div>
     <div id="rankingList"></div>
     <button class="reset-btn" onclick="resetAll()">전체 초기화</button>
   </div>
+</div>
+
+<!-- 1등 발표 오버레이 -->
+<div class="winner-overlay" id="winnerOverlay">
+  <button class="winner-close" onclick="closeWinner()">&times;</button>
+  <canvas id="confettiCanvas"></canvas>
+  <div class="winner-content" id="winnerContent"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -479,16 +672,16 @@
   let currentParticipant = null;
   let currentScores = {};
   let submittedParticipants = new Set();
+  let lastResults = null;
 
   const GROUPS = ['A', 'B', 'C', 'D', 'E'];
-  const GROUP_COLORS = { A: '#ef4444', B: '#f59e0b', C: '#10b981', D: '#3b82f6', E: '#8b5cf6' };
+  const TOPIC_NAMES = { 1: '외부시장 VS 이익률', 2: 'AI 활용 아이디어' };
 
   // ===== 초기화 =====
   async function init() {
     const res = await fetch('/api/participants');
     participants = await res.json();
 
-    // 제출 현황 확인
     for (const p of participants) {
       const check = await fetch(`/api/scores/${p.id}`);
       const data = await check.json();
@@ -550,6 +743,10 @@
     document.getElementById('scorerName').textContent =
       `${currentParticipant.name} (${currentParticipant.group}조)`;
 
+    // 본인 조 안내
+    document.getElementById('ownGroupNotice').textContent =
+      `${currentParticipant.group}조(본인 소속)는 채점 대상에서 제외됩니다.`;
+
     // 이전 제출 점수 불러오기
     const res = await fetch(`/api/scores/${id}`);
     const data = await res.json();
@@ -559,8 +756,10 @@
     } else {
       currentScores = {};
       GROUPS.forEach(g => {
-        currentScores[`${g}_1`] = 0;
-        currentScores[`${g}_2`] = 0;
+        if (g !== currentParticipant.group) {
+          currentScores[`${g}_1`] = 0;
+          currentScores[`${g}_2`] = 0;
+        }
       });
     }
 
@@ -568,37 +767,40 @@
     switchView('scoring');
   }
 
-  // ===== 채점 폼 =====
+  // ===== 채점 폼 (본인 조 제외) =====
   function renderScoringForm() {
     const form = document.getElementById('scoringForm');
+    const myGroup = currentParticipant.group;
 
-    form.innerHTML = GROUPS.map(group => `
+    const otherGroups = GROUPS.filter(g => g !== myGroup);
+
+    form.innerHTML = otherGroups.map(group => `
       <div class="card score-group">
         <div class="score-group-header group-${group}">
           <span class="badge">${group}</span>
           ${group}조 발표
         </div>
         <div class="score-topic">
-          <span class="topic-label">주제 1</span>
+          <span class="topic-label">${TOPIC_NAMES[1]}</span>
           <div class="star-rating">
             ${[1,2,3,4,5].map(s =>
-              `<button class="star ${currentScores[`${group}_1`] >= s ? 'filled' : ''}"
+              `<button class="star ${currentScores[group+'_1'] >= s ? 'filled' : ''}"
                       onclick="setScore('${group}_1', ${s})"
                       data-key="${group}_1" data-value="${s}">&#9733;</button>`
             ).join('')}
           </div>
-          <span class="score-value" id="val_${group}_1">${currentScores[`${group}_1`] || '-'}</span>
+          <span class="score-value" id="val_${group}_1">${currentScores[group+'_1'] || '-'}</span>
         </div>
         <div class="score-topic">
-          <span class="topic-label">주제 2</span>
+          <span class="topic-label">${TOPIC_NAMES[2]}</span>
           <div class="star-rating">
             ${[1,2,3,4,5].map(s =>
-              `<button class="star ${currentScores[`${group}_2`] >= s ? 'filled' : ''}"
+              `<button class="star ${currentScores[group+'_2'] >= s ? 'filled' : ''}"
                       onclick="setScore('${group}_2', ${s})"
                       data-key="${group}_2" data-value="${s}">&#9733;</button>`
             ).join('')}
           </div>
-          <span class="score-value" id="val_${group}_2">${currentScores[`${group}_2`] || '-'}</span>
+          <span class="score-value" id="val_${group}_2">${currentScores[group+'_2'] || '-'}</span>
         </div>
       </div>
     `).join('');
@@ -608,7 +810,6 @@
 
   function setScore(key, value) {
     currentScores[key] = value;
-    // 별 업데이트
     document.querySelectorAll(`[data-key="${key}"]`).forEach(star => {
       star.classList.toggle('filled', parseInt(star.dataset.value) <= value);
     });
@@ -617,7 +818,9 @@
   }
 
   function updateSubmitButton() {
-    const allScored = GROUPS.every(g =>
+    const myGroup = currentParticipant.group;
+    const otherGroups = GROUPS.filter(g => g !== myGroup);
+    const allScored = otherGroups.every(g =>
       currentScores[`${g}_1`] > 0 && currentScores[`${g}_2`] > 0
     );
     const btn = document.getElementById('submitBtn');
@@ -667,9 +870,14 @@
     try {
       const res = await fetch('/api/results');
       const data = await res.json();
+      lastResults = data;
 
       document.getElementById('submissionCount').textContent =
         `${data.submission.submitted}/${data.submission.total}`;
+
+      // 1등 발표 버튼 표시 (제출이 1건 이상이면)
+      const winnerBtn = document.getElementById('winnerRevealBtn');
+      winnerBtn.style.display = data.submission.submitted > 0 ? 'block' : 'none';
 
       const list = document.getElementById('rankingList');
 
@@ -690,7 +898,7 @@
             <div class="rank-info">
               <div class="rank-group">${r.group}조</div>
               <div class="rank-detail">
-                주제1: ${r.topic1.average}점 | 주제2: ${r.topic2.average}점
+                ${TOPIC_NAMES[1]}: ${r.topic1.average}점 | ${TOPIC_NAMES[2]}: ${r.topic2.average}점
                 (${r.topic1.count}명 평가)
               </div>
             </div>
@@ -705,6 +913,162 @@
     }
   }
 
+  // ===== 1등 발표 화면 =====
+  function showWinner() {
+    if (!lastResults || lastResults.rankings.length === 0) return;
+
+    const winner = lastResults.rankings[0];
+    const overlay = document.getElementById('winnerOverlay');
+    const content = document.getElementById('winnerContent');
+
+    content.innerHTML = `
+      <div class="winner-crown">&#128081;</div>
+      <div class="winner-label">WINNER</div>
+      <div class="winner-group-name">${winner.group}조</div>
+      <div class="winner-score-display">&#9733; ${winner.totalAverage}점 &#9733;</div>
+      <div class="winner-details">
+        <div class="winner-detail-row">
+          <span class="detail-label">${TOPIC_NAMES[1]}</span>
+          <span class="detail-value">${winner.topic1.average}점</span>
+        </div>
+        <div class="winner-detail-row">
+          <span class="detail-label">${TOPIC_NAMES[2]}</span>
+          <span class="detail-value">${winner.topic2.average}점</span>
+        </div>
+        <div class="winner-detail-row">
+          <span class="detail-label">평가 인원</span>
+          <span class="detail-value">${winner.topic1.count}명</span>
+        </div>
+      </div>
+      <div class="winner-congrats">&#127881; 축하합니다! &#127881;</div>
+    `;
+
+    overlay.classList.add('active');
+
+    // 축하 효과 시작
+    startConfetti();
+    launchFireworks();
+  }
+
+  function closeWinner() {
+    const overlay = document.getElementById('winnerOverlay');
+    overlay.classList.remove('active');
+    stopConfetti();
+  }
+
+  // ===== 컨페티 효과 =====
+  let confettiAnimId = null;
+  let confettiPieces = [];
+
+  function startConfetti() {
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    confettiPieces = [];
+    const colors = ['#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#fbbf24', '#6366f1'];
+
+    for (let i = 0; i < 150; i++) {
+      confettiPieces.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        w: Math.random() * 10 + 5,
+        h: Math.random() * 6 + 3,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 3,
+        vy: Math.random() * 3 + 2,
+        rot: Math.random() * 360,
+        rotV: (Math.random() - 0.5) * 10,
+        opacity: 1
+      });
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      confettiPieces.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.rotV;
+        p.vy += 0.05; // gravity
+        p.vx *= 0.99;
+
+        // 화면 아래로 나가면 다시 위에서
+        if (p.y > canvas.height + 20) {
+          p.y = -20;
+          p.x = Math.random() * canvas.width;
+          p.vy = Math.random() * 3 + 2;
+        }
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot * Math.PI / 180);
+        ctx.globalAlpha = p.opacity;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      });
+
+      confettiAnimId = requestAnimationFrame(animate);
+    }
+
+    animate();
+  }
+
+  function stopConfetti() {
+    if (confettiAnimId) {
+      cancelAnimationFrame(confettiAnimId);
+      confettiAnimId = null;
+    }
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // ===== 불꽃놀이 효과 =====
+  function launchFireworks() {
+    let count = 0;
+    const interval = setInterval(() => {
+      if (count >= 8 || !document.getElementById('winnerOverlay').classList.contains('active')) {
+        clearInterval(interval);
+        return;
+      }
+      createFirework(
+        Math.random() * window.innerWidth * 0.6 + window.innerWidth * 0.2,
+        Math.random() * window.innerHeight * 0.4 + window.innerHeight * 0.1
+      );
+      count++;
+    }, 600);
+  }
+
+  function createFirework(x, y) {
+    const container = document.createElement('div');
+    container.className = 'firework';
+    container.style.left = x + 'px';
+    container.style.top = y + 'px';
+
+    const colors = ['#fbbf24', '#ef4444', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6'];
+    const sparkCount = 20;
+
+    for (let i = 0; i < sparkCount; i++) {
+      const spark = document.createElement('div');
+      spark.className = 'spark';
+      const angle = (i / sparkCount) * Math.PI * 2;
+      const distance = 40 + Math.random() * 60;
+      const tx = Math.cos(angle) * distance;
+      const ty = Math.sin(angle) * distance;
+      spark.style.setProperty('--tx', tx + 'px');
+      spark.style.setProperty('--ty', ty + 'px');
+      spark.style.background = colors[Math.floor(Math.random() * colors.length)];
+      spark.style.boxShadow = `0 0 6px ${spark.style.background}`;
+      container.appendChild(spark);
+    }
+
+    document.body.appendChild(container);
+    setTimeout(() => container.remove(), 1200);
+  }
+
   // ===== 초기화 =====
   async function resetAll() {
     if (!confirm('모든 점수를 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) return;
@@ -712,6 +1076,7 @@
     await fetch('/api/reset', { method: 'POST' });
     submittedParticipants.clear();
     currentScores = {};
+    lastResults = null;
     showToast('모든 점수가 초기화되었습니다.');
     loadResults();
   }
