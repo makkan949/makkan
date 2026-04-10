@@ -153,6 +153,11 @@ app.post('/api/reset', (req, res) => {
   res.json({ message: '모든 점수가 초기화되었습니다.' });
 });
 
-app.listen(PORT, () => {
-  console.log(`발표 점수 집계 앱이 http://localhost:${PORT} 에서 실행 중입니다.`);
-});
+// 로컬 실행 시에만 listen
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`발표 점수 집계 앱이 http://localhost:${PORT} 에서 실행 중입니다.`);
+  });
+}
+
+module.exports = app;
