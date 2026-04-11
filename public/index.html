@@ -998,6 +998,11 @@
 
   // ===== 관리자(꽃미남 신상무) 로그인 =====
   function loginAsAdmin() {
+    const answer = prompt('신상무를 능가하는 꽃미남 세명의 이름을 쓰시오');
+    if (!answer || answer.trim() !== '없음') {
+      showToast('오답입니다!');
+      return;
+    }
     isAdmin = true;
     currentParticipant = { id: 'admin', name: '꽃미남 신상무', group: 'ADMIN' };
     document.getElementById('scorerName').textContent = '꽃미남 신상무 (관리자)';
