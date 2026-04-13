@@ -102,7 +102,7 @@
     /* 로그인 화면 */
     .group-selector {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       margin-bottom: 16px;
     }
@@ -127,7 +127,7 @@
 
     .member-list {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       gap: 8px;
     }
 
@@ -853,7 +853,7 @@
 
 <div class="header">
   <h1>부서장 리더십 교육 분임토의</h1>
-  <p>5개 조 &times; 2개 주제 | 25명 참가자 채점</p>
+  <p>4개 조 &times; 2개 주제 | 22명 참가자 채점</p>
 </div>
 
 <div class="container">
@@ -873,7 +873,6 @@
         <button class="group-btn" data-group="B" onclick="selectGroup('B')">B조</button>
         <button class="group-btn" data-group="C" onclick="selectGroup('C')">C조</button>
         <button class="group-btn" data-group="D" onclick="selectGroup('D')">D조</button>
-        <button class="group-btn" data-group="E" onclick="selectGroup('E')">E조</button>
       </div>
     </div>
     <div class="card" id="memberCard" style="display:none;">
@@ -884,6 +883,7 @@
         <button class="member-btn" data-num="3" onclick="selectMember(3)">3번</button>
         <button class="member-btn" data-num="4" onclick="selectMember(4)">4번</button>
         <button class="member-btn" data-num="5" onclick="selectMember(5)">5번</button>
+        <button class="member-btn" data-num="6" onclick="selectMember(6)">6번</button>
       </div>
     </div>
     <div class="admin-section">
@@ -936,7 +936,8 @@
   let lastResults = null;
   let isAdmin = false;
 
-  const GROUPS = ['A', 'B', 'C', 'D', 'E'];
+  const GROUPS = ['A', 'B', 'C', 'D'];
+  const GROUP_MEMBERS = { A: 6, B: 5, C: 6, D: 5 };
   const TOPIC_NAMES = { 1: '외부시장 VS 이익률', 2: 'AI 활용 아이디어' };
 
   // ===== 초기화 =====
@@ -988,10 +989,12 @@
     document.querySelector(`[data-group="${group}"]`).classList.add('selected');
     document.getElementById('memberCard').style.display = 'block';
 
-    // 제출 여부 표시 업데이트
+    const maxNum = GROUP_MEMBERS[group];
+    // 조별 인원수에 맞게 버튼 표시/숨김 + 제출 여부
     document.querySelectorAll('#memberList .member-btn').forEach(btn => {
-      const num = btn.dataset.num;
+      const num = parseInt(btn.dataset.num);
       const id = group + num;
+      btn.style.display = num <= maxNum ? '' : 'none';
       btn.classList.toggle('submitted', submittedParticipants.has(id));
     });
   }
