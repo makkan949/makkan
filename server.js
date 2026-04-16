@@ -19,7 +19,7 @@ const REDIS_KEY = 'scores'; // Hash: { participantId: JSON string of scores }
 // ===== 데이터 설정 =====
 
 const GROUPS = ['A', 'B', 'C', 'D'];
-const GROUP_MEMBERS = { A: 6, B: 5, C: 6, D: 5 };
+const GROUP_MEMBERS = { A: 6, B: 5, C: 6, D: 6 };
 const TOPIC_NAMES = {
   1: '외부시장 VS 이익률',
   2: 'AI 활용 아이디어'
