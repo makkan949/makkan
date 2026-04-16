@@ -1431,11 +1431,11 @@
 
   // ===== 축하 사운드 (Web Audio API) =====
   let celebrationAudioCtx = null;
-  let celebrationNodes = [];
+  let celebrationSources = [];
 
   function stopCelebrationSound() {
-    celebrationNodes.forEach(n => { try { n.stop(); } catch(e){} });
-    celebrationNodes = [];
+    celebrationSources.forEach(n => { try { n.stop(); } catch(e){} });
+    celebrationSources = [];
     if (celebrationAudioCtx) {
       celebrationAudioCtx.close().catch(()=>{});
       celebrationAudioCtx = null;
@@ -1448,87 +1448,249 @@
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       celebrationAudioCtx = ctx;
 
-      // 빵빠레 - 팡파르 멜로디
-      playFanfare(ctx);
+      // 마스터 출력
+      const master = ctx.createGain();
+      master.gain.value = 0.7;
 
-      // 1.5초 후 박수 소리
-      setTimeout(() => {
-        if (celebrationAudioCtx === ctx) playApplause(ctx);
-      }, 1500);
-    } catch(e) {}
+      // 리버브 생성
+      const reverb = createReverb(ctx);
+      const reverbGain = ctx.createGain();
+      reverbGain.gain.value = 0.3;
+      const dryGain = ctx.createGain();
+      dryGain.gain.value = 0.8;
+
+      dryGain.connect(master);
+      reverbGain.connect(reverb);
+      reverb.connect(master);
+      master.connect(ctx.destination);
+
+      // 1) 팡파르 (브라스 음색)
+      playBrassFanfare(ctx, dryGain, reverbGain);
+
+      // 2) 박수 (팡파르와 동시 시작, 점점 커짐)
+      playRealisticApplause(ctx, master);
+
+    } catch(e) { console.error('Audio error:', e); }
   }
 
-  function playFanfare(ctx) {
-    const notes = [
-      { freq: 523, start: 0, dur: 0.15 },    // C5
-      { freq: 523, start: 0.18, dur: 0.15 },  // C5
-      { freq: 523, start: 0.36, dur: 0.15 },  // C5
-      { freq: 659, start: 0.55, dur: 0.4 },   // E5
-      { freq: 587, start: 1.0, dur: 0.15 },   // D5
-      { freq: 587, start: 1.18, dur: 0.15 },  // D5
-      { freq: 587, start: 1.36, dur: 0.15 },  // D5
-      { freq: 784, start: 1.55, dur: 0.6 },   // G5
-      { freq: 698, start: 2.2, dur: 0.15 },   // F5
-      { freq: 659, start: 2.4, dur: 0.15 },   // E5
-      { freq: 784, start: 2.6, dur: 0.8 },    // G5
-      { freq: 1047, start: 2.6, dur: 0.8 },   // C6 (화음)
-    ];
+  // 간단한 리버브 (딜레이 기반)
+  function createReverb(ctx) {
+    const len = ctx.sampleRate * 1.5;
+    const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = buf.getChannelData(ch);
+      for (let i = 0; i < len; i++) {
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.5);
+      }
+    }
+    const conv = ctx.createConvolver();
+    conv.buffer = buf;
+    return conv;
+  }
 
-    notes.forEach(n => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.value = n.freq;
-      gain.gain.setValueAtTime(0, ctx.currentTime + n.start);
-      gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + n.start + 0.03);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + n.start + n.dur);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(ctx.currentTime + n.start);
-      osc.stop(ctx.currentTime + n.start + n.dur + 0.05);
-      celebrationNodes.push(osc);
+  // 브라스 음색 생성 (톱니파 + 필터 + 비브라토)
+  function playBrassNote(ctx, freq, start, dur, vol, dry, wet) {
+    const t = ctx.currentTime + start;
+
+    // 기본파 (톱니파 = 금관 음색)
+    const osc1 = ctx.createOscillator();
+    osc1.type = 'sawtooth';
+    osc1.frequency.value = freq;
+
+    // 옥타브 아래 보강
+    const osc2 = ctx.createOscillator();
+    osc2.type = 'sawtooth';
+    osc2.frequency.value = freq * 0.5;
+
+    // 5도 위 하모닉
+    const osc3 = ctx.createOscillator();
+    osc3.type = 'sine';
+    osc3.frequency.value = freq * 1.5;
+
+    // 비브라토 LFO
+    const vibrato = ctx.createOscillator();
+    const vibGain = ctx.createGain();
+    vibrato.frequency.value = 5;
+    vibGain.gain.value = freq * 0.008;
+    vibrato.connect(vibGain);
+    vibGain.connect(osc1.frequency);
+    vibGain.connect(osc2.frequency);
+
+    // 로우패스 필터 (브라스 음색 핵심)
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.Q.value = 2;
+    // 어택 시 필터 열림 -> 브라스 느낌
+    filter.frequency.setValueAtTime(300, t);
+    filter.frequency.linearRampToValueAtTime(freq * 4, t + 0.06);
+    filter.frequency.linearRampToValueAtTime(freq * 2.5, t + dur * 0.3);
+    filter.frequency.linearRampToValueAtTime(freq * 1.5, t + dur);
+
+    // 볼륨 엔벨로프
+    const gain1 = ctx.createGain();
+    const gain2 = ctx.createGain();
+    const gain3 = ctx.createGain();
+
+    gain1.gain.setValueAtTime(0, t);
+    gain1.gain.linearRampToValueAtTime(vol, t + 0.04);
+    gain1.gain.setValueAtTime(vol * 0.85, t + dur * 0.4);
+    gain1.gain.linearRampToValueAtTime(0, t + dur);
+
+    gain2.gain.setValueAtTime(0, t);
+    gain2.gain.linearRampToValueAtTime(vol * 0.3, t + 0.04);
+    gain2.gain.linearRampToValueAtTime(0, t + dur);
+
+    gain3.gain.setValueAtTime(0, t);
+    gain3.gain.linearRampToValueAtTime(vol * 0.15, t + 0.04);
+    gain3.gain.linearRampToValueAtTime(0, t + dur);
+
+    osc1.connect(gain1);
+    osc2.connect(gain2);
+    osc3.connect(gain3);
+    gain1.connect(filter);
+    gain2.connect(filter);
+    gain3.connect(filter);
+    filter.connect(dry);
+    filter.connect(wet);
+
+    [osc1, osc2, osc3, vibrato].forEach(o => {
+      o.start(t);
+      o.stop(t + dur + 0.1);
+      celebrationSources.push(o);
     });
   }
 
-  function playApplause(ctx) {
-    // 박수 = 필터링된 노이즈 버스트 반복
-    const duration = 4;
-    const bufferSize = ctx.sampleRate * duration;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
+  function playBrassFanfare(ctx, dry, wet) {
+    const v = 0.13;
+    // 승리 팡파르 (FF 승리 팡파르 스타일)
+    // 첫 번째 프레이즈: 짧은 팡!팡!팡! -> 길게
+    playBrassNote(ctx, 523, 0.0,  0.18, v, dry, wet);   // C5
+    playBrassNote(ctx, 523, 0.22, 0.18, v, dry, wet);   // C5
+    playBrassNote(ctx, 523, 0.44, 0.18, v, dry, wet);   // C5
+    playBrassNote(ctx, 659, 0.70, 0.50, v*1.1, dry, wet); // E5 (길게)
 
-    // 노이즈 + 박수 리듬 패턴 생성
-    for (let i = 0; i < bufferSize; i++) {
-      const t = i / ctx.sampleRate;
-      // 박수 한 번 = 짧은 노이즈 버스트 (약 0.04초 간격으로 랜덤하게)
-      const clapRate = 12 + Math.sin(t * 2) * 4; // 초당 8~16회
-      const phase = (t * clapRate) % 1;
-      const envelope = phase < 0.3 ? Math.pow(1 - phase / 0.3, 2) : 0;
-      data[i] = (Math.random() * 2 - 1) * envelope * 0.3;
+    // 두 번째 프레이즈
+    playBrassNote(ctx, 622, 1.30, 0.18, v, dry, wet);   // Eb5
+    playBrassNote(ctx, 622, 1.52, 0.18, v, dry, wet);   // Eb5
+    playBrassNote(ctx, 622, 1.74, 0.18, v, dry, wet);   // Eb5
+    playBrassNote(ctx, 784, 2.00, 0.50, v*1.1, dry, wet); // G5 (길게)
+
+    // 클라이맥스: 화음
+    playBrassNote(ctx, 784, 2.65, 1.0, v*1.2, dry, wet);  // G5
+    playBrassNote(ctx, 988, 2.65, 1.0, v*1.0, dry, wet);  // B5
+    playBrassNote(ctx, 1175, 2.65, 1.0, v*0.9, dry, wet); // D6
+    playBrassNote(ctx, 523, 2.65, 1.0, v*0.8, dry, wet);  // C5 (베이스)
+
+    // 마지막 한 방
+    playBrassNote(ctx, 1047, 3.80, 1.5, v*1.3, dry, wet); // C6
+    playBrassNote(ctx, 784, 3.80, 1.5, v*1.1, dry, wet);  // G5
+    playBrassNote(ctx, 523, 3.80, 1.5, v*1.0, dry, wet);  // C5
+    playBrassNote(ctx, 262, 3.80, 1.5, v*0.7, dry, wet);  // C4 (저음)
+
+    // 심벌즈 크래시
+    playCymbal(ctx, 0.0, 0.8, dry);
+    playCymbal(ctx, 2.65, 1.2, dry);
+    playCymbal(ctx, 3.80, 2.0, dry);
+  }
+
+  // 심벌즈
+  function playCymbal(ctx, start, dur, dest) {
+    const t = ctx.currentTime + start;
+    const bufLen = ctx.sampleRate * dur;
+    const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufLen; i++) {
+      const env = Math.pow(1 - i / bufLen, 3);
+      data[i] = (Math.random() * 2 - 1) * env;
     }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const g = ctx.createGain();
+    g.gain.value = 0.08;
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 6000;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'peaking';
+    bp.frequency.value = 8000;
+    bp.gain.value = 6;
+    src.connect(hp);
+    hp.connect(bp);
+    bp.connect(g);
+    g.connect(dest);
+    src.start(t);
+    src.stop(t + dur);
+    celebrationSources.push(src);
+  }
 
-    // 전체 볼륨 엔벨로프: 서서히 커졌다 작아짐
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
+  // 리얼 박수 (여러 명이 제각각 치는 느낌)
+  function playRealisticApplause(ctx, dest) {
+    const duration = 6;
+    const numClappers = 15; // 15명이 각각 박수
 
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + 0.5);
-    gain.gain.setValueAtTime(0.4, ctx.currentTime + 2.5);
-    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+    for (let c = 0; c < numClappers; c++) {
+      const clapBuf = createSingleClapBuffer(ctx);
+      const personalRate = 3 + Math.random() * 4; // 사람마다 초당 3~7회
+      const offset = Math.random() * 0.3; // 사람마다 시작 시점 다름
+      const panVal = (Math.random() - 0.5) * 1.6; // 좌우 분산
 
-    // 밴드패스 필터로 박수 느낌
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.value = 3000;
-    filter.Q.value = 0.5;
+      // 한 사람이 duration동안 박수
+      let time = offset + 1.0; // 팡파르 1초 후부터 시작
+      while (time < duration + 1.0) {
+        const src = ctx.createBufferSource();
+        src.buffer = clapBuf;
+        // 재생 속도 약간씩 달라서 자연스럽게
+        src.playbackRate.value = 0.85 + Math.random() * 0.3;
 
-    source.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    source.start();
-    source.stop(ctx.currentTime + duration);
-    celebrationNodes.push(source);
+        const g = ctx.createGain();
+        // 볼륨: 서서히 커졌다 유지 후 줄어듦
+        const relTime = time - 1.0;
+        let vol = 0.12 + Math.random() * 0.06;
+        if (relTime < 1) vol *= relTime; // 페이드인
+        if (relTime > duration - 1.5) vol *= (duration - relTime + 0.5) / 2; // 페이드아웃
+        g.gain.value = Math.max(0, vol);
+
+        // 스테레오 패닝
+        if (ctx.createStereoPanner) {
+          const pan = ctx.createStereoPanner();
+          pan.pan.value = panVal + (Math.random() - 0.5) * 0.3;
+          src.connect(g);
+          g.connect(pan);
+          pan.connect(dest);
+        } else {
+          src.connect(g);
+          g.connect(dest);
+        }
+
+        src.start(ctx.currentTime + time);
+        celebrationSources.push(src);
+
+        // 다음 박수 타이밍 (약간 불규칙)
+        time += (1 / personalRate) * (0.7 + Math.random() * 0.6);
+      }
+    }
+  }
+
+  // 박수 한 번 소리 버퍼 생성
+  function createSingleClapBuffer(ctx) {
+    const len = Math.floor(ctx.sampleRate * 0.06); // 60ms
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+
+    for (let i = 0; i < len; i++) {
+      const t = i / ctx.sampleRate;
+      // 급격한 어택 + 빠른 디케이
+      const env = t < 0.003
+        ? t / 0.003
+        : Math.exp(-t * 80) * 0.7 + Math.exp(-t * 20) * 0.3;
+      // 노이즈 기반이지만 중고음 강조
+      let sample = (Math.random() * 2 - 1) * env;
+      // 약간의 톤 성분 (손바닥 공명)
+      sample += Math.sin(2 * Math.PI * 1200 * t) * env * 0.15 * Math.exp(-t * 60);
+      sample += Math.sin(2 * Math.PI * 2400 * t) * env * 0.08 * Math.exp(-t * 80);
+      data[i] = sample;
+    }
+    return buf;
   }
 
   // 결과 확인 버튼 -> 순위 목록 표시
