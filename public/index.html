@@ -861,7 +861,7 @@
   <div class="tabs">
     <button class="tab active" data-view="login">참가자 선택</button>
     <button class="tab" data-view="scoring">채점하기</button>
-    <button class="tab" data-view="results">결과 보기</button>
+    <button class="tab" data-view="results">결과 발표</button>
   </div>
 
   <!-- 1. 참가자 선택 화면 -->
@@ -906,14 +906,14 @@
   <div id="results" class="view">
     <div class="result-summary">
       <div class="submission-count">
-        제출 현황: <strong id="submissionCount">0/25</strong>
+        제출 현황: <strong id="submissionCount">0/23</strong>
       </div>
       <div class="result-actions">
         <button class="refresh-btn" onclick="loadResults()">새로고침</button>
-        <button class="winner-reveal-btn" id="winnerRevealBtn" onclick="showWinner()" style="display:none;">1등 발표</button>
+        <button class="winner-reveal-btn" id="winnerRevealBtn" onclick="showResultDetails()" style="display:none;">결과 확인</button>
       </div>
     </div>
-    <div id="rankingList"></div>
+    <div id="rankingList" style="display:none;"></div>
     <button class="reset-btn" id="resetBtn" onclick="resetAll()" style="display:none;">전체 초기화</button>
   </div>
 </div>
@@ -969,7 +969,13 @@
         return;
       }
       switchView(view);
-      if (view === 'results') loadResults();
+      if (view === 'results') {
+        loadResults().then(() => {
+          if (lastResults && lastResults.submission.submitted > 0) {
+            showWinner();
+          }
+        });
+      }
     });
   });
 
@@ -1012,7 +1018,11 @@
 
     // 결과 탭으로 바로 이동
     switchView('results');
-    loadResults();
+    loadResults().then(() => {
+      if (lastResults && lastResults.submission.submitted > 0) {
+        showWinner();
+      }
+    });
   }
 
   // ===== 멤버 선택 =====
@@ -1169,6 +1179,9 @@
 
       document.getElementById('submissionCount').textContent =
         `${data.submission.submitted}/${data.submission.total}`;
+
+      // 순위 목록은 숨긴 채로 시작 (결과 확인 버튼으로 표시)
+      document.getElementById('rankingList').style.display = 'none';
 
       // 관리자 전용 버튼 표시
       const winnerBtn = document.getElementById('winnerRevealBtn');
@@ -1412,6 +1425,12 @@
     const overlay = document.getElementById('winnerOverlay');
     overlay.classList.remove('active');
     stopConfetti();
+  }
+
+  // 결과 확인 버튼 -> 순위 목록 표시
+  function showResultDetails() {
+    document.getElementById('rankingList').style.display = 'block';
+    document.getElementById('winnerRevealBtn').style.display = 'none';
   }
 
   // ===== 컨페티 효과 =====
