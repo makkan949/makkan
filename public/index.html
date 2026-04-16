@@ -1419,12 +1419,116 @@
 
     startConfetti();
     launchFireworks();
+    playCelebrationSound();
   }
 
   function closeWinner() {
     const overlay = document.getElementById('winnerOverlay');
     overlay.classList.remove('active');
     stopConfetti();
+    stopCelebrationSound();
+  }
+
+  // ===== 축하 사운드 (Web Audio API) =====
+  let celebrationAudioCtx = null;
+  let celebrationNodes = [];
+
+  function stopCelebrationSound() {
+    celebrationNodes.forEach(n => { try { n.stop(); } catch(e){} });
+    celebrationNodes = [];
+    if (celebrationAudioCtx) {
+      celebrationAudioCtx.close().catch(()=>{});
+      celebrationAudioCtx = null;
+    }
+  }
+
+  function playCelebrationSound() {
+    stopCelebrationSound();
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      celebrationAudioCtx = ctx;
+
+      // 빵빠레 - 팡파르 멜로디
+      playFanfare(ctx);
+
+      // 1.5초 후 박수 소리
+      setTimeout(() => {
+        if (celebrationAudioCtx === ctx) playApplause(ctx);
+      }, 1500);
+    } catch(e) {}
+  }
+
+  function playFanfare(ctx) {
+    const notes = [
+      { freq: 523, start: 0, dur: 0.15 },    // C5
+      { freq: 523, start: 0.18, dur: 0.15 },  // C5
+      { freq: 523, start: 0.36, dur: 0.15 },  // C5
+      { freq: 659, start: 0.55, dur: 0.4 },   // E5
+      { freq: 587, start: 1.0, dur: 0.15 },   // D5
+      { freq: 587, start: 1.18, dur: 0.15 },  // D5
+      { freq: 587, start: 1.36, dur: 0.15 },  // D5
+      { freq: 784, start: 1.55, dur: 0.6 },   // G5
+      { freq: 698, start: 2.2, dur: 0.15 },   // F5
+      { freq: 659, start: 2.4, dur: 0.15 },   // E5
+      { freq: 784, start: 2.6, dur: 0.8 },    // G5
+      { freq: 1047, start: 2.6, dur: 0.8 },   // C6 (화음)
+    ];
+
+    notes.forEach(n => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = n.freq;
+      gain.gain.setValueAtTime(0, ctx.currentTime + n.start);
+      gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + n.start + 0.03);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + n.start + n.dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + n.start);
+      osc.stop(ctx.currentTime + n.start + n.dur + 0.05);
+      celebrationNodes.push(osc);
+    });
+  }
+
+  function playApplause(ctx) {
+    // 박수 = 필터링된 노이즈 버스트 반복
+    const duration = 4;
+    const bufferSize = ctx.sampleRate * duration;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+
+    // 노이즈 + 박수 리듬 패턴 생성
+    for (let i = 0; i < bufferSize; i++) {
+      const t = i / ctx.sampleRate;
+      // 박수 한 번 = 짧은 노이즈 버스트 (약 0.04초 간격으로 랜덤하게)
+      const clapRate = 12 + Math.sin(t * 2) * 4; // 초당 8~16회
+      const phase = (t * clapRate) % 1;
+      const envelope = phase < 0.3 ? Math.pow(1 - phase / 0.3, 2) : 0;
+      data[i] = (Math.random() * 2 - 1) * envelope * 0.3;
+    }
+
+    // 전체 볼륨 엔벨로프: 서서히 커졌다 작아짐
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + 0.5);
+    gain.gain.setValueAtTime(0.4, ctx.currentTime + 2.5);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+
+    // 밴드패스 필터로 박수 느낌
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 3000;
+    filter.Q.value = 0.5;
+
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    source.start();
+    source.stop(ctx.currentTime + duration);
+    celebrationNodes.push(source);
   }
 
   // 결과 확인 버튼 -> 순위 목록 표시
